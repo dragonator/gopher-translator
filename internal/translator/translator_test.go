@@ -3,13 +3,11 @@ package translator
 import (
 	"regexp"
 	"testing"
-
-	"github.com/dragonator/gopher-translator/internal/models"
 )
 
 func TestNew(t *testing.T) {
 	// setup
-	rules := []*models.Rule{
+	rules := []*Rule{
 		{MatchPattern: "aaa", ReplacePattern: "AAA"},
 		{MatchPattern: "bbb", ReplacePattern: "BBB"},
 	}

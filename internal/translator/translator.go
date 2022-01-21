@@ -2,9 +2,13 @@ package translator
 
 import (
 	"regexp"
-
-	"github.com/dragonator/gopher-translator/internal/models"
 )
+
+// Rule -
+type Rule struct {
+	MatchPattern   string `json:"match_pattern"`
+	ReplacePattern string `json:"replace_pattern"`
+}
 
 // Translator -
 type Translator interface {
@@ -21,7 +25,7 @@ type translator struct {
 }
 
 // New -
-func New(rules []*models.Rule) Translator {
+func New(rules []*Rule) Translator {
 	t := &translator{}
 	for _, rule := range rules {
 		t.rules = append(t.rules, &compiledRule{
@@ -33,6 +37,7 @@ func New(rules []*models.Rule) Translator {
 	return t
 }
 
+// Translate -
 func (t *translator) Translate(word string) string {
 	for _, rule := range t.rules {
 		if rule.re.MatchString(word) {
