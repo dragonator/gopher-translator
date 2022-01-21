@@ -2,8 +2,6 @@ package storage
 
 import (
 	"testing"
-
-	"github.com/dragonator/gopher-translator/internal/models"
 )
 
 func TestNew(t *testing.T) {
@@ -16,24 +14,24 @@ func TestNew(t *testing.T) {
 func TestAddRecord(t *testing.T) {
 	// setup
 	s := storage{}
-	input := []*models.Record{
-		{EnglishWord: "c", GopherWord: "3"},
-		{EnglishWord: "a", GopherWord: "1"},
-		{EnglishWord: "b", GopherWord: "2"},
+	input := []*Record{
+		{Input: "c", Output: "3"},
+		{Input: "a", Output: "1"},
+		{Input: "b", Output: "2"},
 	}
 	// call
 	for _, record := range input {
 		s.AddRecord(record)
 	}
 	// assert
-	expected := []*models.Record{
-		{EnglishWord: "a", GopherWord: "1"},
-		{EnglishWord: "b", GopherWord: "2"},
-		{EnglishWord: "c", GopherWord: "3"},
+	expected := []*Record{
+		{Input: "a", Output: "1"},
+		{Input: "b", Output: "2"},
+		{Input: "c", Output: "3"},
 	}
 	for i, record := range s.store {
-		if record.EnglishWord != expected[i].EnglishWord ||
-			record.GopherWord != expected[i].GopherWord {
+		if record.Input != expected[i].Input ||
+			record.Output != expected[i].Output {
 			t.Errorf("unexpected values for record: %v (expected: %v)", record, expected[i])
 		}
 	}
@@ -42,7 +40,7 @@ func TestAddRecord(t *testing.T) {
 func TestHistory(t *testing.T) {
 	// setup
 	s := &storage{
-		store: []*models.Record{{EnglishWord: "test"}},
+		store: []*Record{{Input: "test"}},
 	}
 	// call
 	h := s.History()

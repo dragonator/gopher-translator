@@ -2,18 +2,22 @@ package storage
 
 import (
 	"sort"
-
-	"github.com/dragonator/gopher-translator/internal/models"
 )
+
+// Record -
+type Record struct {
+	Input  string
+	Output string
+}
 
 // Storage -
 type Storage interface {
-	AddRecord(r *models.Record)
-	History() []*models.Record
+	AddRecord(r *Record)
+	History() []*Record
 }
 
 type storage struct {
-	store []*models.Record
+	store []*Record
 }
 
 // New -
@@ -21,15 +25,15 @@ func New() Storage {
 	return &storage{}
 }
 
-func (s *storage) AddRecord(r *models.Record) {
+func (s *storage) AddRecord(r *Record) {
 	i := sort.Search(len(s.store), func(i int) bool {
-		return s.store[i].EnglishWord >= r.EnglishWord
+		return s.store[i].Input >= r.Input
 	})
 	s.store = append(s.store, nil)
 	copy(s.store[i+1:], s.store[i:])
 	s.store[i] = r
 }
 
-func (s *storage) History() []*models.Record {
+func (s *storage) History() []*Record {
 	return s.store
 }
