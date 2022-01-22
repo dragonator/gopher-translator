@@ -37,7 +37,7 @@ func (gr *gopher) TranslateWord(word string) string {
 // TranslateSentence -
 func (gr *gopher) TranslateSentence(sentence string) string {
 	endSymbol := string(sentence[len(sentence)-1])
-	words := strings.Split(sentence[:len(sentence)-2], " ")
+	words := strings.Split(sentence[:len(sentence)-1], " ")
 
 	translatedWords := make([]string, 0, len(words)+1)
 	for _, w := range words {

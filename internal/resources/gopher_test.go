@@ -1,6 +1,7 @@
 package resources
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/dragonator/gopher-translator/internal/storage"
@@ -16,18 +17,19 @@ func TestNewGopher(t *testing.T) {
 
 func TestTranslateWord(t *testing.T) {
 	// setup
+	input := "apple"
+	expected := "gapple"
 	tm := mocks.NewTranslatorMock()
-	tm.On("Translate", "apple").Return("gapple")
+	tm.On("Translate", input).Return(expected)
 	sm := mocks.NewStorageMock()
-	sm.On("AddRecord", &storage.Record{Input: "apple", Output: "gapple"})
+	sm.On("AddRecord", &storage.Record{Input: input, Output: expected})
 	gopher := &gopher{
 		translator: tm,
 		store:      sm,
 	}
 	// call
-	res := gopher.TranslateWord("apple")
+	res := gopher.TranslateWord(input)
 	// assert
-	expected := "gapple"
 	tm.AssertExpectations(t)
 	sm.AssertExpectations(t)
 	if res != expected {
@@ -36,7 +38,39 @@ func TestTranslateWord(t *testing.T) {
 }
 
 func TestTranslateSentence(t *testing.T) {
+	testCases := []struct {
+		name     string
+		input    string
+		expected string
+	}{
+		{"boring sentence", "boring sentence.", "|boring| |sentence|."},
+		{"sentence with commas", "this one, has comma!", "|this| |one,| |has| |comma|!"},
+	}
 
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			// setup
+			tm := mocks.NewTranslatorMock()
+			words := strings.Split(tc.input[:len(tc.input)-1], " ")
+			for _, word := range words {
+				tm.On("Translate", word).Return("|" + word + "|")
+			}
+
+			sm := mocks.NewStorageMock()
+			sm.On("AddRecord", &storage.Record{Input: tc.input, Output: tc.expected})
+
+			gopher := &gopher{
+				translator: tm,
+				store:      sm,
+			}
+			// call
+			res := gopher.TranslateSentence(tc.input)
+			// assert
+			if res != tc.expected {
+				t.Errorf("unexpected translation: %s (expected: %s)", res, tc.expected)
+			}
+		})
+	}
 }
 
 func TestHistory(t *testing.T) {
@@ -69,7 +103,6 @@ func TestHistory(t *testing.T) {
 			}
 			if av != ev {
 				t.Errorf("unexpected value for record: %s (expected: %s)", av, ev)
-
 			}
 		}
 	}
