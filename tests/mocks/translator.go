@@ -20,7 +20,3 @@ func (tm *TranslatorMock) Translate(word string) string {
 	}
 	return v
 }
-
-func compareStrings(a, b interface{}) bool {
-	return a.(string) == b.(string)
-}

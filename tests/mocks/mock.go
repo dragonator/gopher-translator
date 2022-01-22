@@ -63,7 +63,7 @@ func (m *BaseMock) AssertExpectations(t *testing.T) {
 	for method, fm := range m.funcMocks {
 		for arg, cm := range fm {
 			if !cm.called {
-				t.Errorf("expectation not met: %s(\"%v\")", method, arg)
+				t.Errorf("expected call not received: %s(\"%v\")", method, arg)
 			}
 		}
 	}

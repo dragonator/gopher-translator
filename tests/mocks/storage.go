@@ -27,17 +27,3 @@ func (tm *StorageMock) History() []*storage.Record {
 	}
 	return v
 }
-
-func compareRecords(a, b interface{}) bool {
-	ar := a.(*storage.Record)
-	br := b.(*storage.Record)
-	if ar.Input != br.Input ||
-		ar.Output != br.Output {
-		return false
-	}
-	return true
-}
-
-func compareNils(a, b interface{}) bool {
-	return a == b
-}
