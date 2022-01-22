@@ -1,11 +1,9 @@
 package handlers
 
 import (
-	"encoding/json"
-	"fmt"
 	"net/http"
 
-	"github.com/dragonator/gopher-translator/internal/contracts"
+	v1 "github.com/dragonator/gopher-translator/internal/contracts/v1"
 	"github.com/dragonator/gopher-translator/internal/resources"
 )
 
@@ -33,18 +31,16 @@ func (gh *gopher) TranslateWord(method, path string) func(w http.ResponseWriter,
 			return
 		}
 
-		req := &contracts.GopherWordRequest{}
-		err := json.NewDecoder(r.Body).Decode(&req)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+		req := &v1.GopherWordRequest{}
+		if err := decode(r, req); err != nil {
+			jsonError(w, http.StatusBadRequest, &v1.ErrorResponse{Message: err.Error()})
 			return
 		}
 
-		resp := &contracts.GopherWordResponse{
+		resp := &v1.GopherWordResponse{
 			GopherWord: gh.rs.TranslateWord(req.EnglishWord),
 		}
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(resp)
+		success(w, resp)
 		return
 	}
 }
@@ -55,18 +51,16 @@ func (gh *gopher) TranslateSentence(method, path string) func(w http.ResponseWri
 			return
 		}
 
-		req := &contracts.GopherSentenceRequest{}
-		err := json.NewDecoder(r.Body).Decode(&req)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+		req := &v1.GopherSentenceRequest{}
+		if err := decode(r, req); err != nil {
+			jsonError(w, http.StatusBadRequest, &v1.ErrorResponse{Message: err.Error()})
 			return
 		}
 
-		resp := &contracts.GopherSentenceResponse{
+		resp := &v1.GopherSentenceResponse{
 			GopherSentence: gh.rs.TranslateSentence(req.EnglishSentence),
 		}
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(resp)
+		success(w, resp)
 		return
 	}
 }
@@ -77,21 +71,8 @@ func (gh *gopher) History(method, path string) func(w http.ResponseWriter, r *ht
 			return
 		}
 
-		h := gh.rs.History()
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(h)
+		resp := gh.rs.History()
+		success(w, resp)
 		return
 	}
-}
-
-func validMethodAndPath(w http.ResponseWriter, r *http.Request, method, path string) bool {
-	if r.URL.Path != path {
-		http.NotFound(w, r)
-		return false
-	}
-	if r.Method != method {
-		http.Error(w, fmt.Sprintf("Only %s requests are allowed!", method), http.StatusMethodNotAllowed)
-		return false
-	}
-	return true
 }
