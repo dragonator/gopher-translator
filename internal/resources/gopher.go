@@ -57,7 +57,3 @@ func (gr *gopher) History() (result []map[string]string) {
 	}
 	return
 }
-
-func normalizeWord(word string) {
-
-}
