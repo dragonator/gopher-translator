@@ -4,9 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
-	"os"
 
 	"github.com/dragonator/gopher-translator/internal/handlers"
 	"github.com/dragonator/gopher-translator/internal/resources"
@@ -20,31 +20,23 @@ const (
 	CfgParamPortNumber = "PortNumber"
 )
 
+// Bootstrap -
+type Bootstrap struct {
+	Port string
+	Spec io.Reader
+}
+
 // Service -
 type Service struct {
 	server *http.Server
 }
 
 // New -
-func New(config map[string]string) (*Service, error) {
-	requiredKeys := []string{
-		CfgParamSpecFile,
-		CfgParamPortNumber,
-	}
-	for _, key := range requiredKeys {
-		_, ok := config[key]
-		if !ok {
-			return nil, fmt.Errorf("missing required configuration: %s", key)
-		}
-	}
-
-	data, err := os.ReadFile(config[CfgParamSpecFile])
-	if err != nil {
-		return nil, err
-	}
-
+func New(b *Bootstrap) (*Service, error) {
 	spec := &translator.Specification{}
-	if err := json.Unmarshal(data, spec); err != nil {
+	d := json.NewDecoder(b.Spec)
+	d.DisallowUnknownFields()
+	if err := d.Decode(spec); err != nil {
 		return nil, err
 	}
 
@@ -55,7 +47,7 @@ func New(config map[string]string) (*Service, error) {
 	router := NewRouter(gh)
 
 	srv := &http.Server{
-		Addr:    fmt.Sprintf(":%s", config[CfgParamPortNumber]),
+		Addr:    fmt.Sprintf(":%s", b.Port),
 		Handler: router,
 	}
 

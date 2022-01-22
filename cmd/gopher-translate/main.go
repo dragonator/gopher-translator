@@ -10,20 +10,31 @@ import (
 )
 
 func main() {
+	// TODO: Remove
 	_ = os.Setenv("SPECIFICATION_FILEPATH", "/Users/tdraganov/code/gopher-translator/configs/gopher_rules.json")
 
-	config := map[string]string{}
 	specFile := os.Getenv("SPECIFICATION_FILEPATH")
 	if specFile == "" {
 		log.Fatal("missing environment variable $SPECIFICATION_FILEPATH")
 	}
-	config[service.CfgParamSpecFile] = specFile
-	config[service.CfgParamPortNumber] = "8080" // TODO: Retrieve from parameter
+	f, err := os.Open(specFile)
+	if err != nil {
+		log.Fatalf("failure opening spec file: %v", err)
+	}
 
-	svc, err := service.New(config)
+	b := &service.Bootstrap{
+		Port: "8080", // TODO: Retrieve from parameter
+		Spec: f,
+	}
+	svc, err := service.New(b)
 	if err != nil {
 		log.Fatalf("Failed to start server: %v", err)
+		os.Exit(1)
 	}
+	// Close now to avoid keeping the file descriptor
+	// open during the whole time running the service
+	f.Close()
+
 	svc.Start()
 
 	stop := make(chan os.Signal, 1)
