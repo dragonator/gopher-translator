@@ -16,8 +16,8 @@ import (
 
 // Constants -
 const (
-	CfgParamRulesFilepath = "RulesFilepath"
-	CfgParamPortNumber    = "PortNumber"
+	CfgParamSpecFile   = "SpecFile"
+	CfgParamPortNumber = "PortNumber"
 )
 
 // Service -
@@ -28,7 +28,7 @@ type Service struct {
 // New -
 func New(config map[string]string) (*Service, error) {
 	requiredKeys := []string{
-		CfgParamRulesFilepath,
+		CfgParamSpecFile,
 		CfgParamPortNumber,
 	}
 	for _, key := range requiredKeys {
@@ -38,7 +38,7 @@ func New(config map[string]string) (*Service, error) {
 		}
 	}
 
-	data, err := os.ReadFile(config[CfgParamRulesFilepath])
+	data, err := os.ReadFile(config[CfgParamSpecFile])
 	if err != nil {
 		return nil, err
 	}

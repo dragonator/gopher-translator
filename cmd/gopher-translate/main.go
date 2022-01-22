@@ -10,14 +10,14 @@ import (
 )
 
 func main() {
-	_ = os.Setenv("GOPHER_RULES_FILEPATH", "/Users/tdraganov/code/gopher-translator/configs/gopher_rules.json")
+	_ = os.Setenv("SPECIFICATION_FILEPATH", "/Users/tdraganov/code/gopher-translator/configs/gopher_rules.json")
 
 	config := map[string]string{}
-	rulesFilepath := os.Getenv("GOPHER_RULES_FILEPATH")
-	if rulesFilepath == "" {
-		log.Fatal("missing environment variable $GOPHER_RULES_FILEPATH")
+	specFile := os.Getenv("SPECIFICATION_FILEPATH")
+	if specFile == "" {
+		log.Fatal("missing environment variable $SPECIFICATION_FILEPATH")
 	}
-	config[service.CfgParamRulesFilepath] = rulesFilepath
+	config[service.CfgParamSpecFile] = specFile
 	config[service.CfgParamPortNumber] = "8080" // TODO: Retrieve from parameter
 
 	svc, err := service.New(config)

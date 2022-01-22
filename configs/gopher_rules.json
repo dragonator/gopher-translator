@@ -1,18 +1,24 @@
-[
-    {
-        "match_pattern": "^([aeiou].*)$",
-        "replace_pattern": "g$1"
-    },
-    {
-        "match_pattern": "^(xr.*)$",
-        "replace_pattern": "ge$1"
-    },
-    {
-        "match_pattern": "^([^aeiou]+qu)(.*)$",
-        "replace_pattern": "$2${1}ogo"
-    },
-    {
-        "match_pattern": "^([^aeiou]+)(.*)$",
-        "replace_pattern": "$2${1}ogo"
-    }
-]
+{
+    "rules":    [
+        {
+            "match_pattern": "^([aeiou].*)$",
+            "replace_pattern": "g$1"
+        },
+        {
+            "match_pattern": "^(xr.*)$",
+            "replace_pattern": "ge$1"
+        },
+        {
+            "match_pattern": "^([^aeiou]+qu)(.*)$",
+            "replace_pattern": "$2${1}ogo"
+        },
+        {
+            "match_pattern": "^([^aeiou]+)(.*)$",
+            "replace_pattern": "$2${1}ogo"
+        }
+    ],
+    "normalizer": [
+        ["'", ""],
+        ["’", ""]
+    ]
+}
