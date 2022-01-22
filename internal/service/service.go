@@ -43,12 +43,12 @@ func New(config map[string]string) (*Service, error) {
 		return nil, err
 	}
 
-	var rules []*translator.Rule
-	if err := json.Unmarshal(data, &rules); err != nil {
+	var spec *translator.Specification
+	if err := json.Unmarshal(data, spec); err != nil {
 		return nil, err
 	}
 
-	tr := translator.New(rules)
+	tr := translator.New(spec)
 	store := storage.New()
 	gr := resources.NewGopher(tr, store)
 	gh := handlers.NewGopher(gr)

@@ -17,7 +17,6 @@ type Gopher interface {
 type gopher struct {
 	translator translator.Translator
 	store      storage.Storage
-	replacer   *strings.Replacer
 }
 
 // NewGopher -
@@ -25,14 +24,12 @@ func NewGopher(tr translator.Translator, st storage.Storage) Gopher {
 	return &gopher{
 		translator: tr,
 		store:      st,
-		replacer:   strings.NewReplacer("'", "", "’", ""),
 	}
 }
 
 // TranslateWord -
 func (gr *gopher) TranslateWord(word string) string {
-	normalizedWord := gr.replacer.Replace(word)
-	translation := gr.translator.Translate(normalizedWord)
+	translation := gr.translator.Translate(word)
 	gr.store.AddRecord(&storage.Record{Input: word, Output: translation})
 	return translation
 }
@@ -44,8 +41,7 @@ func (gr *gopher) TranslateSentence(sentence string) string {
 
 	translatedWords := make([]string, 0, len(words)+1)
 	for _, w := range words {
-		normalizedWord := gr.replacer.Replace(w)
-		tw := gr.translator.Translate(normalizedWord)
+		tw := gr.translator.Translate(w)
 		translatedWords = append(translatedWords, tw)
 	}
 	translatedSentence := strings.Join(translatedWords, " ") + endSymbol

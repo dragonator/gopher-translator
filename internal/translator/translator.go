@@ -2,7 +2,14 @@ package translator
 
 import (
 	"regexp"
+	"strings"
 )
+
+// Specification -
+type Specification struct {
+	Rules      []*Rule     `json:"rules"`
+	Normalizer [][2]string `json:"normalizer"`
+}
 
 // Rule -
 type Rule struct {
@@ -21,13 +28,22 @@ type compiledRule struct {
 }
 
 type translator struct {
-	rules []*compiledRule
+	rules    []*compiledRule
+	replacer *strings.Replacer
 }
 
 // New -
-func New(rules []*Rule) Translator {
-	t := &translator{}
-	for _, rule := range rules {
+func New(spec *Specification) Translator {
+	var flatten []string
+	for _, pair := range spec.Normalizer {
+		flatten = append(flatten, pair[:]...)
+	}
+
+	t := &translator{
+		replacer: strings.NewReplacer(flatten...),
+	}
+
+	for _, rule := range spec.Rules {
 		t.rules = append(t.rules, &compiledRule{
 			re:             regexp.MustCompile(rule.MatchPattern),
 			replacePattern: rule.ReplacePattern,
@@ -39,10 +55,11 @@ func New(rules []*Rule) Translator {
 
 // Translate -
 func (t *translator) Translate(word string) string {
+	normalized := t.replacer.Replace(word)
 	for _, rule := range t.rules {
-		if rule.re.MatchString(word) {
-			return rule.re.ReplaceAllString(word, rule.replacePattern)
+		if rule.re.MatchString(normalized) {
+			return rule.re.ReplaceAllString(normalized, rule.replacePattern)
 		}
 	}
-	return word
+	return normalized
 }
