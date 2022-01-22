@@ -1,15 +1,20 @@
 package main
 
 import (
+	"flag"
 	"log"
 	"os"
 	"os/signal"
+	"strconv"
 	"syscall"
 
 	"github.com/dragonator/gopher-translator/internal/service"
 )
 
 func main() {
+	port := flag.Int("port", 8080, "port number the server should listen on")
+	flag.Parse()
+
 	// TODO: Remove
 	_ = os.Setenv("SPECIFICATION_FILEPATH", "/Users/tdraganov/code/gopher-translator/configs/gopher_rules.json")
 
@@ -23,7 +28,7 @@ func main() {
 	}
 
 	b := &service.Bootstrap{
-		Port: "8080", // TODO: Retrieve from parameter
+		Port: strconv.Itoa(*port),
 		Spec: f,
 	}
 	svc, err := service.New(b)
