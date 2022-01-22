@@ -11,7 +11,7 @@ import (
 func TestNewGopher(t *testing.T) {
 	s := NewGopher(nil, nil)
 	if s == nil {
-		t.Error("unexpected nil value")
+		t.Error("unexpected nil resource")
 	}
 }
 

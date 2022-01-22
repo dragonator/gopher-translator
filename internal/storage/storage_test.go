@@ -7,7 +7,7 @@ import (
 func TestNew(t *testing.T) {
 	s := New()
 	if s == nil {
-		t.Error("unexpected nil value")
+		t.Error("unexpected nil storage")
 	}
 }
 

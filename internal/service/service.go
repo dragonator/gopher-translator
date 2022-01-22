@@ -43,7 +43,7 @@ func New(config map[string]string) (*Service, error) {
 		return nil, err
 	}
 
-	var spec *translator.Specification
+	spec := &translator.Specification{}
 	if err := json.Unmarshal(data, spec); err != nil {
 		return nil, err
 	}
