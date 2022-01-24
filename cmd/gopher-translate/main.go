@@ -13,16 +13,13 @@ import (
 
 func main() {
 	port := flag.Int("port", 8080, "port number the server should listen on")
+	specfile := flag.String("specfile", "", "json file with translation instructions")
 	flag.Parse()
 
-	// TODO: Remove
-	_ = os.Setenv("SPECIFICATION_FILEPATH", "/Users/tdraganov/code/gopher-translator/configs/gopher_rules.json")
-
-	specFile := os.Getenv("SPECIFICATION_FILEPATH")
-	if specFile == "" {
-		log.Fatal("missing environment variable $SPECIFICATION_FILEPATH")
+	if *specfile == "" {
+		log.Fatal("missing required argument: --specfile FILE")
 	}
-	f, err := os.Open(specFile)
+	f, err := os.Open(*specfile)
 	if err != nil {
 		log.Fatalf("failure opening spec file: %v", err)
 	}
