@@ -1,19 +1,19 @@
 {
     "rules":    [
         {
-            "match_pattern": "^([aeiou].*)$",
+            "match_pattern": "^([aAeEiIoOuU].*)$",
             "replace_pattern": "g$1"
         },
         {
-            "match_pattern": "^(xr.*)$",
+            "match_pattern": "^(xXrR.*)$",
             "replace_pattern": "ge$1"
         },
         {
-            "match_pattern": "^([^aeiou]+qu)(.*)$",
+            "match_pattern": "^([^aAeEiIoOuU]+qu)(.*)$",
             "replace_pattern": "$2${1}ogo"
         },
         {
-            "match_pattern": "^([^aeiou]+)(.*)$",
+            "match_pattern": "^([^aAeEiIoOuU]+)(.*)$",
             "replace_pattern": "$2${1}ogo"
         }
     ],
