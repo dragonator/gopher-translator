@@ -17,8 +17,5 @@
             "replace_pattern": "$2${1}ogo"
         }
     ],
-    "normalizer": [
-        ["'", ""],
-        ["’", ""]
-    ]
+    "invalid_characters": ["'", "’"]
 }

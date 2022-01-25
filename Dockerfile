@@ -19,7 +19,7 @@ RUN go build -o ./bin/gopher-translate ./cmd/gopher-translate/main.go
 # Binary only container
 FROM scratch
 WORKDIR /app
-COPY --from=builder /app/configs/gopher_rules.json ./configs/
+COPY --from=builder /app/configs/gopher.json ./configs/
 COPY --from=builder /app/bin/gopher-translate .
-CMD ["./gopher-translate", "--port", "8080", "--specfile", "./configs/gopher_rules.json"]
+CMD ["./gopher-translate", "--port", "8080", "--specfile", "./configs/gopher.json"]
 EXPOSE 8080

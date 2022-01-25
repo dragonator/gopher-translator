@@ -12,7 +12,7 @@ type CallMock struct {
 }
 
 // Return -
-func (fm *CallMock) Return(v interface{}) {
+func (fm *CallMock) Return(v ...interface{}) {
 	fm.expectation = v
 }
 

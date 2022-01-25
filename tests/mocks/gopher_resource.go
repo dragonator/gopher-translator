@@ -13,28 +13,24 @@ func NewGopherResourceMock() *GopherResourceMock {
 }
 
 // TranslateWord -
-func (tm *GopherResourceMock) TranslateWord(word string) string {
-	v, ok := tm.MarkCalledAndReturn("TranslateWord", word, compareStrings).(string)
-	if !ok {
-		panic("unexpected return value type")
+func (tm *GopherResourceMock) TranslateWord(word string) (string, error) {
+	v := tm.MarkCalledAndReturn("TranslateWord", word, compareStrings).([]interface{})
+	if v[1] == nil {
+		return v[0].(string), nil
 	}
-	return v
+	return v[0].(string), v[1].(error)
 }
 
 // TranslateSentence -
-func (tm *GopherResourceMock) TranslateSentence(word string) string {
-	v, ok := tm.MarkCalledAndReturn("TranslateSentence", word, compareStrings).(string)
-	if !ok {
-		panic("unexpected return value type")
+func (tm *GopherResourceMock) TranslateSentence(word string) (string, error) {
+	v := tm.MarkCalledAndReturn("TranslateSentence", word, compareStrings).([]interface{})
+	if v[1] == nil {
+		return v[0].(string), nil
 	}
-	return v
+	return v[0].(string), v[1].(error)
 }
 
 // History -
 func (tm *GopherResourceMock) History() []map[string]string {
-	v, ok := tm.MarkCalledAndReturn("History", nil, compareNils).([]map[string]string)
-	if !ok {
-		panic("unexpected return value type")
-	}
-	return v
+	return tm.MarkCalledAndReturn("History", nil, compareNils).([]interface{})[0].([]map[string]string)
 }

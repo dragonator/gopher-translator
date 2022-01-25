@@ -13,10 +13,10 @@ func NewTranslatorMock() *TranslatorMock {
 }
 
 // Translate -
-func (tm *TranslatorMock) Translate(word string) string {
-	v, ok := tm.MarkCalledAndReturn("Translate", word, compareStrings).(string)
-	if !ok {
-		panic("unexpected return value type")
+func (tm *TranslatorMock) Translate(word string) (string, error) {
+	v := tm.MarkCalledAndReturn("Translate", word, compareStrings).([]interface{})
+	if v[1] == nil {
+		return v[0].(string), nil
 	}
-	return v
+	return v[0].(string), v[1].(error)
 }

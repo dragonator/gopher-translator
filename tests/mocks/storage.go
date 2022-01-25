@@ -21,9 +21,5 @@ func (tm *StorageMock) AddRecord(r *storage.Record) {
 
 // History -
 func (tm *StorageMock) History() []*storage.Record {
-	v, ok := tm.MarkCalledAndReturn("History", nil, compareNils).([]*storage.Record)
-	if !ok {
-		panic("unexpected return value type")
-	}
-	return v
+	return tm.MarkCalledAndReturn("History", nil, compareNils).([]interface{})[0].([]*storage.Record)
 }

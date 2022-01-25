@@ -3,11 +3,13 @@ package handlers
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	v1 "github.com/dragonator/gopher-translator/internal/contracts/v1"
+	"github.com/dragonator/gopher-translator/internal/service/svc"
 	"github.com/dragonator/gopher-translator/tests/mocks"
 )
 
@@ -19,75 +21,159 @@ func TestNew(t *testing.T) {
 }
 
 func TestTranslateWord(t *testing.T) {
-	testCases := []struct {
-		name         string
-		method       string
-		path         string
-		body         interface{}
-		expectedCode int
-		expectedBody interface{}
-	}{
-		{"invalid method", "invalid", "/word", nil, http.StatusMethodNotAllowed, "405 method not allowed\n"},
-		{"invalid path", "POST", "/invalid", nil, http.StatusNotFound, "404 page not found\n"},
-		{"json decoding failed", "POST", "/word", `{"invalid":"a"}`, http.StatusBadRequest, &v1.ErrorResponse{Message: `json: unknown field "invalid"`}},
-		{"ok", "POST", "/word", &v1.GopherWordRequest{EnglishWord: "apple"}, http.StatusOK, &v1.GopherWordResponse{GopherWord: "gapple"}},
-	}
 
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			// setup
-			w, r := createReq(tc.method, tc.path, tc.body)
-			rm := mocks.NewGopherResourceMock()
-			gh := &gopher{rs: rm}
-			if tc.expectedCode == http.StatusOK {
-				req := tc.body.(*v1.GopherWordRequest)
-				exp := tc.expectedBody.(*v1.GopherWordResponse)
-				rm.On("TranslateWord", req.EnglishWord).Return(exp.GopherWord)
-			}
-			// call
-			gh.TranslateWord("POST", "/word")(w, r)
-			// assert
-			rm.AssertExpectations(t)
-			assertCode(t, w.Code, tc.expectedCode)
-			assertBody(t, w.Body, tc.expectedBody)
-		})
-	}
+	t.Run("invalid method", func(t *testing.T) {
+		// setup
+		w, r := createReq("invalid", "/word", nil)
+		gh := &gopher{}
+		// call
+		gh.TranslateWord("POST", "/word")(w, r)
+		// assert
+		assertCode(t, w.Code, http.StatusMethodNotAllowed)
+		assertBody(t, w.Body, "405 method not allowed\n")
+	})
+
+	t.Run("invalid path", func(t *testing.T) {
+		// setup
+		w, r := createReq("POST", "/invalid", nil)
+		gh := &gopher{}
+		// call
+		gh.TranslateWord("POST", "/word")(w, r)
+		// assert
+		assertCode(t, w.Code, http.StatusNotFound)
+		assertBody(t, w.Body, "404 page not found\n")
+	})
+
+	t.Run("json decoding failed", func(t *testing.T) {
+		// setup
+		w, r := createReq("POST", "/word", `{"invalid":"a"}`)
+		gh := &gopher{}
+		// call
+		gh.TranslateWord("POST", "/word")(w, r)
+		// assert
+		assertCode(t, w.Code, http.StatusBadRequest)
+		assertBody(t, w.Body, &v1.ErrorResponse{Message: `request decoding failed: json: unknown field "invalid"`})
+	})
+
+	t.Run("known translate error", func(t *testing.T) {
+		// setup
+		req := &v1.GopherWordRequest{EnglishWord: "ap'ple"}
+		w, r := createReq("POST", "/word", req)
+		rm := mocks.NewGopherResourceMock()
+		gh := &gopher{rs: rm}
+		rm.On("TranslateWord", req.EnglishWord).Return("", svc.ErrInvalidInput)
+		// call
+		gh.TranslateWord("POST", "/word")(w, r)
+		// assert
+		assertCode(t, w.Code, http.StatusBadRequest)
+		assertBody(t, w.Body, &v1.ErrorResponse{Message: "invalid input"})
+	})
+
+	t.Run("unknown translate error", func(t *testing.T) {
+		// setup
+		req := &v1.GopherWordRequest{EnglishWord: "ap'ple"}
+		w, r := createReq("POST", "/word", req)
+		rm := mocks.NewGopherResourceMock()
+		gh := &gopher{rs: rm}
+		rm.On("TranslateWord", req.EnglishWord).Return("", errors.New("test error"))
+		// call
+		gh.TranslateWord("POST", "/word")(w, r)
+		// assert
+		assertCode(t, w.Code, http.StatusInternalServerError)
+		assertBody(t, w.Body, &v1.ErrorResponse{Message: "test error"})
+	})
+
+	t.Run("ok", func(t *testing.T) {
+		// setup
+		req := &v1.GopherWordRequest{EnglishWord: "apple"}
+		w, r := createReq("POST", "/word", req)
+		rm := mocks.NewGopherResourceMock()
+		gh := &gopher{rs: rm}
+		rm.On("TranslateWord", req.EnglishWord).Return("gapple", nil)
+		// call
+		gh.TranslateWord("POST", "/word")(w, r)
+		// assert
+		assertCode(t, w.Code, http.StatusOK)
+		assertBody(t, w.Body, &v1.GopherWordResponse{GopherWord: "gapple"})
+	})
 }
 
 func TestTranslateSentence(t *testing.T) {
-	testCases := []struct {
-		name         string
-		method       string
-		path         string
-		body         interface{}
-		expectedCode int
-		expectedBody interface{}
-	}{
-		{"invalid method", "invalid", "/sentence", nil, http.StatusMethodNotAllowed, "405 method not allowed\n"},
-		{"invalid path", "POST", "/invalid", nil, http.StatusNotFound, "404 page not found\n"},
-		{"json decoding failed", "POST", "/sentence", `{"invalid":"a"}`, http.StatusBadRequest, &v1.ErrorResponse{Message: `json: unknown field "invalid"`}},
-		{"ok", "POST", "/sentence", &v1.GopherSentenceRequest{EnglishSentence: "apple."}, http.StatusOK, &v1.GopherSentenceResponse{GopherSentence: "gapple."}},
-	}
 
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			// setup
-			w, r := createReq(tc.method, tc.path, tc.body)
-			rm := mocks.NewGopherResourceMock()
-			gh := &gopher{rs: rm}
-			if tc.expectedCode == http.StatusOK {
-				req := tc.body.(*v1.GopherSentenceRequest)
-				exp := tc.expectedBody.(*v1.GopherSentenceResponse)
-				rm.On("TranslateSentence", req.EnglishSentence).Return(exp.GopherSentence)
-			}
-			// call
-			gh.TranslateSentence("POST", "/sentence")(w, r)
-			// assert
-			rm.AssertExpectations(t)
-			assertCode(t, w.Code, tc.expectedCode)
-			assertBody(t, w.Body, tc.expectedBody)
-		})
-	}
+	t.Run("invalid method", func(t *testing.T) {
+		// setup
+		w, r := createReq("invalid", "/sentence", nil)
+		gh := &gopher{}
+		// call
+		gh.TranslateSentence("POST", "/sentence")(w, r)
+		// assert
+		assertCode(t, w.Code, http.StatusMethodNotAllowed)
+		assertBody(t, w.Body, "405 method not allowed\n")
+	})
+
+	t.Run("invalid path", func(t *testing.T) {
+		// setup
+		w, r := createReq("POST", "/invalid", nil)
+		gh := &gopher{}
+		// call
+		gh.TranslateSentence("POST", "/sentence")(w, r)
+		// assert
+		assertCode(t, w.Code, http.StatusNotFound)
+		assertBody(t, w.Body, "404 page not found\n")
+	})
+
+	t.Run("json decoding failed", func(t *testing.T) {
+		// setup
+		w, r := createReq("POST", "/sentence", `{"invalid":"a"}`)
+		gh := &gopher{}
+		// call
+		gh.TranslateSentence("POST", "/sentence")(w, r)
+		// assert
+		assertCode(t, w.Code, http.StatusBadRequest)
+		assertBody(t, w.Body, &v1.ErrorResponse{Message: `request decoding failed: json: unknown field "invalid"`})
+	})
+
+	t.Run("known translate error", func(t *testing.T) {
+		// setup
+		req := &v1.GopherSentenceRequest{EnglishSentence: "ap'ple"}
+		w, r := createReq("POST", "/sentence", req)
+		rm := mocks.NewGopherResourceMock()
+		gh := &gopher{rs: rm}
+		rm.On("TranslateSentence", req.EnglishSentence).Return("", svc.ErrInvalidInput)
+		// call
+		gh.TranslateSentence("POST", "/sentence")(w, r)
+		// assert
+		assertCode(t, w.Code, http.StatusBadRequest)
+		assertBody(t, w.Body, &v1.ErrorResponse{Message: "invalid input"})
+	})
+
+	t.Run("unknown translate error", func(t *testing.T) {
+		// setup
+		req := &v1.GopherSentenceRequest{EnglishSentence: "ap'ple"}
+		w, r := createReq("POST", "/sentence", req)
+		rm := mocks.NewGopherResourceMock()
+		gh := &gopher{rs: rm}
+		rm.On("TranslateSentence", req.EnglishSentence).Return("", errors.New("test error"))
+		// call
+		gh.TranslateSentence("POST", "/sentence")(w, r)
+		// assert
+		assertCode(t, w.Code, http.StatusInternalServerError)
+		assertBody(t, w.Body, &v1.ErrorResponse{Message: "test error"})
+	})
+
+	t.Run("ok", func(t *testing.T) {
+		// setup
+		req := &v1.GopherSentenceRequest{EnglishSentence: "apple"}
+		w, r := createReq("POST", "/sentence", req)
+		rm := mocks.NewGopherResourceMock()
+		gh := &gopher{rs: rm}
+		rm.On("TranslateSentence", req.EnglishSentence).Return("gapple", nil)
+		// call
+		gh.TranslateSentence("POST", "/sentence")(w, r)
+		// assert
+		assertCode(t, w.Code, http.StatusOK)
+		assertBody(t, w.Body, &v1.GopherSentenceResponse{GopherSentence: "gapple"})
+	})
 }
 
 func TestHistory(t *testing.T) {

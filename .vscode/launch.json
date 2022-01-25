@@ -11,7 +11,7 @@
             "mode": "auto",
             "program": "${workspaceFolder}/cmd/gopher-translate/main.go",
             "args": [
-                "--specfile", "${workspaceFolder}/configs/gopher_rules.json"
+                "--specfile", "${workspaceFolder}/configs/gopher.json"
             ]
         }
     ]

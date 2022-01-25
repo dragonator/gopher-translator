@@ -1,14 +1,17 @@
 package translator
 
 import (
+	"fmt"
 	"regexp"
 	"strings"
+
+	"github.com/dragonator/gopher-translator/internal/service/svc"
 )
 
 // Specification -
 type Specification struct {
-	Rules      []*Rule     `json:"rules"`
-	Normalizer [][2]string `json:"normalizer"`
+	Rules        []*Rule  `json:"rules"`
+	InvalidChars []string `json:"invalid_characters"`
 }
 
 // Rule -
@@ -19,7 +22,7 @@ type Rule struct {
 
 // Translator -
 type Translator interface {
-	Translate(word string) string
+	Translate(word string) (string, error)
 }
 
 type compiledRule struct {
@@ -28,19 +31,14 @@ type compiledRule struct {
 }
 
 type translator struct {
-	rules    []*compiledRule
-	replacer *strings.Replacer
+	rules        []*compiledRule
+	invalidChars []string
 }
 
 // New -
 func New(spec *Specification) Translator {
-	var flatten []string
-	for _, pair := range spec.Normalizer {
-		flatten = append(flatten, pair[:]...)
-	}
-
 	t := &translator{
-		replacer: strings.NewReplacer(flatten...),
+		invalidChars: spec.InvalidChars,
 	}
 
 	for _, rule := range spec.Rules {
@@ -54,12 +52,17 @@ func New(spec *Specification) Translator {
 }
 
 // Translate -
-func (t *translator) Translate(word string) string {
-	normalized := t.replacer.Replace(word)
-	for _, rule := range t.rules {
-		if rule.re.MatchString(normalized) {
-			return rule.re.ReplaceAllString(normalized, rule.replacePattern)
+func (t *translator) Translate(word string) (string, error) {
+	for _, c := range t.invalidChars {
+		if strings.Contains(word, c) {
+			return "", fmt.Errorf("%w: word contains invalid character: %s", svc.ErrInvalidInput, c)
 		}
 	}
-	return normalized
+
+	for _, rule := range t.rules {
+		if rule.re.MatchString(word) {
+			return rule.re.ReplaceAllString(word, rule.replacePattern), nil
+		}
+	}
+	return word, nil
 }
